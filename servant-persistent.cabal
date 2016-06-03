@@ -24,6 +24,13 @@ executable perservant
         base >=4.7 && <4.9
       , servant-persistent
       , persistent-postgresql
+      , servant
+      , servant-js
+      , servant-swagger
+      , servant-server
+      , bytestring
+      , aeson
+      , swagger2
       , wai
       , warp
       , monad-logger
@@ -39,11 +46,14 @@ library
         src
     exposed-modules:
         Config
-      , Models
+      , Model
+      , Model.User
+      , Model.Loan
       , Api
       , Api.Person
       , Api.Loan
       , Api.Crud
+      , Api.Shared
     build-depends:
         base >= 4.7 && < 4.9
       , servant >= 0.7 && < 0.8
@@ -55,6 +65,7 @@ library
       , persistent-postgresql
       , persistent-template
       , esqueleto
+      , pwstore-fast
       , wai
       , bytestring
       , wai-extra

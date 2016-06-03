@@ -28,18 +28,20 @@ import           Servant.JS
 
 -- Project's modules
 import           Config                      (Config (..), App(..), runDb)
-import           Models
+import qualified Model
+import           Model.Loan
 import           Api.Crud (crudServer, CrudAPI)
 import qualified Api.Crud as Crud
 
 type LoanAPI =
-         "loans" :> Get '[JSON] [Entity Loan]
+         "loans" :> Get '[JSON] [(LoanId,Loan)] {-
     :<|> "loans" :> ReqBody '[JSON] Loan :> Post '[JSON] Int64
 --  :<|>   BasicAuth "involved-realm" User :> "loans" :>  Capture "id" (Key Loan) :> Get '[JSON] (Entity Loan) -- get
-    :<|> "loans" :>  Capture "id" (Key Loan) :> Get '[JSON] (Entity Loan) -- get
+    :<|> "loans" :>  Capture "id" LoanId :> Get '[JSON] Loan -- get
 
-    :<|> "loans" :>  Capture "id" (Key Loan) :> DeleteNoContent '[JSON] NoContent -- delete
-    :<|> "loans" :>  Capture "id" (Key Loan) :> ReqBody '[JSON] Loan :> PutNoContent '[JSON] NoContent -- put
+    :<|> "loans" :>  Capture "id" LoanId :> DeleteNoContent '[JSON] NoContent -- delete
+    :<|> "loans" :>  Capture "id" LoanId :> ReqBody '[JSON] Loan :> PutNoContent '[JSON] NoContent -- put
+-}
 
 {-
 -- | Checks that the given BasicAuth credentials correspond to a user
@@ -60,14 +62,15 @@ userAuthCheck = BasicAuthCheck check where
 
 loanServer :: ServerT LoanAPI App
 loanServer =  allLoans
+{-
          :<|> Crud.crudPost
          :<|> Crud.crudGet
          :<|> Crud.crudDelete
          :<|> Crud.crudPut
+-}
 
-
-allLoans :: App [Entity Loan]
-allLoans = runDb (selectList [] [])
+allLoans :: App [(LoanId,Loan)]
+allLoans = fmap (\(Entity k model) -> (LoanId $ fromSqlKey k,modelToLoan model)) <$> runDb (selectList [] [])
 
 
 generateJSAndSwagger :: IO ()

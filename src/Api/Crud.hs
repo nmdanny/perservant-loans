@@ -23,7 +23,6 @@ import           Servant
 import           Servant.JS
 
 import           Config                      (Config (..), App(..), runDb)
-import           Models
 
 -- TODO: Understand if the following is needed
 

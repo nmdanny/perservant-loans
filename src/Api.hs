@@ -2,7 +2,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TypeOperators              #-}
 
-module Api (app) where
+module Api (app,AppAPI,appApi) where
 
 import           Control.Monad.Except
 import           Control.Monad.Reader        (ReaderT, runReaderT)
@@ -14,7 +14,7 @@ import           Network.Wai                 (Application)
 import           Servant
 
 import           Config                      (App (..), Config (..))
-import           Models
+import           Model
 
 import           Api.Person
 import           Api.Loan
