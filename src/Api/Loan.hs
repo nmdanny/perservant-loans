@@ -4,7 +4,7 @@
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Api.Loan (loanServer,LoanAPI,generateJSAndSwagger)where
+module Api.Loan (loanServer,LoanAPI)where
 
 -- General/built in haskell modules
 import Data.Text (Text)
@@ -17,7 +17,7 @@ import           Data.Int                    (Int64)
 
 
 --  Database and Servant modules
-import           Database.Persist.Postgresql (Entity (..), fromSqlKey, insert, delete, update, replace, get, Key, entityKey, entityVal,
+import           Database.Persist.Postgresql (Entity (..), fromSqlKey, toSqlKey, insert, delete, update, replace, get, Key, entityKey, entityVal,
                                               selectFirst, selectList, (==.))
 import           Network.Wai                 (Application)
 import           Servant
@@ -34,7 +34,9 @@ import           Api.Crud (crudServer, CrudAPI)
 import qualified Api.Crud as Crud
 
 type LoanAPI =
-         "loans" :> Get '[JSON] [(LoanId,Loan)] {-
+         "loans" :> Get '[JSON] [(LoanId,Loan)]
+    :<|> "loans" :> ReqBody '[JSON] Loan :> Post '[JSON] LoanId
+{-
     :<|> "loans" :> ReqBody '[JSON] Loan :> Post '[JSON] Int64
 --  :<|>   BasicAuth "involved-realm" User :> "loans" :>  Capture "id" (Key Loan) :> Get '[JSON] (Entity Loan) -- get
     :<|> "loans" :>  Capture "id" LoanId :> Get '[JSON] Loan -- get
@@ -62,6 +64,7 @@ userAuthCheck = BasicAuthCheck check where
 
 loanServer :: ServerT LoanAPI App
 loanServer =  allLoans
+         :<|> postLoan
 {-
          :<|> Crud.crudPost
          :<|> Crud.crudGet
@@ -72,7 +75,10 @@ loanServer =  allLoans
 allLoans :: App [(LoanId,Loan)]
 allLoans = fmap (\(Entity k model) -> (LoanId $ fromSqlKey k,modelToLoan model)) <$> runDb (selectList [] [])
 
+postLoan :: Loan -> App LoanId
+postLoan = fmap (LoanId . fromSqlKey) . runDb . insert . loanToModel
 
-generateJSAndSwagger :: IO ()
-generateJSAndSwagger = do
-  writeJSForAPI (Proxy :: Proxy LoanAPI) vanillaJS "./assets/loanAPI.js"
+getLoan :: LoanId -> App Loan
+getLoan (LoanId loanId) = do
+  maybeLoan <- runDb $ selectFirst [Model.LoanId ==. toSqlKey loanId] []
+  maybe (throwError err404) (return . modelToLoan .  entityVal ) maybeLoan

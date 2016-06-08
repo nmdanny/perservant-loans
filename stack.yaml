@@ -8,4 +8,4 @@ extra-deps:
 - servant-js-0.7.1
 - servant-foreign-0.7.1
 - servant-swagger-1.0.3
-resolver: lts-6.1
+resolver: lts-6.2
